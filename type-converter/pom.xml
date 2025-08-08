@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>sw.sandbox</groupId>
+	<artifactId>camel-experiments</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>Camel SB Examples :: Custom Type Converter</name>
+	<description>An example showing how to create custom type converter with Camel and Spring Boot</description>
+
+	<properties>
+		<category>Beginner</category>
+
+		<camel-version>4.8.0</camel-version>
+
+		<!-- Spring target version -->
+		<spring-boot-version>3.3.3</spring-boot-version>
+		<springdoc-version>2.2.0</springdoc-version>
+
+		<skip.starting.camel.context>false</skip.starting.camel.context>
+		<javax.servlet.api.version>4.0.1</javax.servlet.api.version>
+		<jkube-maven-plugin-version>1.14.0</jkube-maven-plugin-version>
+		<kafka-avro-serializer-version>5.2.2</kafka-avro-serializer-version>
+		<reactor-version>3.5.11</reactor-version>
+		<testcontainers-version>1.19.8</testcontainers-version>
+		<hapi-structures-v24-version>2.3</hapi-structures-v24-version>
+		<narayana-spring-boot-version>2.6.7</narayana-spring-boot-version>
+		<artemis-jakarta-version>2.31.0</artemis-jakarta-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Camel BOM -->
+			<dependency>
+				<groupId>org.apache.camel.springboot</groupId>
+				<artifactId>camel-spring-boot-bom</artifactId>
+				<version>${camel-version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- Spring Boot BOM -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring-boot-version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!--
+			  CAMEL-13084 Fix the spring-boot examples start up error by overriding servlet API version from camel-parent
+			  We need to clean it up once camel-parent upgrade the servlet api version.
+			-->
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>${javax.servlet.api.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<profiles>
+		<profile>
+			<id>container-test</id>
+			<properties>
+				<skip.starting.camel.context>true</skip.starting.camel.context>
+			</properties>
+		</profile>
+		<!--
+		  This profile allows you to add a repository to the repo list so that
+		  you can test the examples out against a staged version of the camel distribution
+		-->
+		<profile>
+			<id>add-remote-repo</id>
+			<activation>
+				<property>
+					<name>remoteRepo</name>
+				</property>
+			</activation>
+
+			<repositories>
+				<repository>
+					<id>dynamic.repo</id>
+					<name>Repository Dynamically Added Via the Command Line</name>
+					<url>$remoteRepo</url>
+				</repository>
+			</repositories>
+			<pluginRepositories>
+				<pluginRepository>
+					<id>dynamic.repo</id>
+					<name>Repository Dynamically Added Via the Command Line</name>
+					<url>$remoteRepo</url>
+				</pluginRepository>
+			</pluginRepositories>
+
+		</profile>
+	</profiles>
+
+	<dependencies>
+
+		<!-- Spring Boot -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<!-- Camel -->
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-stream-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-caffeine-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-servlet-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-rest-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-http-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-jackson-starter</artifactId>
+		</dependency>
+
+		<!-- OpenApi and swagger ui -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>${springdoc-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-springdoc-starter</artifactId>
+		</dependency>
+
+		<!-- metrics and expose for prometheus -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-micrometer-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+		<!-- test -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-test-spring-junit5</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+
+			<!-- update readme file -->
+			<plugin>
+				<groupId>org.apache.camel</groupId>
+				<artifactId>camel-package-maven-plugin</artifactId>
+				<version>${camel-version}</version>
+				<configuration>
+					<startingFolder></startingFolder>
+					<filter>spring-boot</filter>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-example</goal>
+						</goals>
+						<phase>process-resources</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- to validate Camel endpoints: mvn camel-report:validate -->
+			<plugin>
+				<groupId>org.apache.camel</groupId>
+				<artifactId>camel-report-maven-plugin</artifactId>
+				<version>${camel-version}</version>
+				<configuration>
+					<failOnError>false</failOnError>
+					<includeTest>true</includeTest>
+					<includeXml>true</includeXml>
+					<ignoreLenientProperties>false</ignoreLenientProperties>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+					<systemPropertyVariables>
+						<skipStartingCamelContext>${skip.starting.camel.context}</skipStartingCamelContext>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring-boot-version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Camel Maven Package Plugin to generate Type Converter Loader source code - Camel 3.x way -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>add-source</goal>
+							<goal>add-resource</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/generated/java</source>
+							</sources>
+							<resources>
+								<resource>
+									<directory>src/generated/resources</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Adds mgenerated Type Converter Loader source in src/generated to the source path - Camel 3.x way -->
+			<plugin>
+				<groupId>org.apache.camel</groupId>
+				<artifactId>camel-package-maven-plugin</artifactId>
+				<version>${camel-version}</version>
+				<executions>
+					<execution>
+						<id>generate</id>
+						<goals>
+							<goal>generate-component</goal>
+						</goals>
+						<phase>process-classes</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
