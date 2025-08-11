@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import sample.FruitRestApp;
+import sample.model.Fruit;
 import sample.model.Person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,14 +51,16 @@ public class CustomConverterRuntimeTest {
 // 		Requires  TypeConverterLoader file in /META-INF/services/org/apache/camel/
 		context.getTypeConverterRegistry().addTypeConverters(new CustomRuntimeConverter());
 
-		byte[] data = "John Doe 22".getBytes();
-		final Person abc = producerTemplate.requestBody("direct:convertToPerson", data, Person.class);
+		Fruit banana = new Fruit();
+		banana.setName("Banana");
+		banana.setDescription("Long fruit.");
+		final Person abc = producerTemplate.requestBody("direct:convertToPerson", banana, Person.class);
 
 		assertNotNull(abc);
 
-		assertEquals("John", abc.getFirstName());
-		assertEquals("Doe", abc.getLastName());
-		assertEquals(22, abc.getAge());
+		assertEquals("Banana", abc.getFirstName());
+		assertEquals("Long fruit.", abc.getLastName());
+		assertEquals(6, abc.getAge());
 	}
 
 }
