@@ -20,6 +20,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.camel.BindToRegistry;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jacksonxml.JacksonXMLDataFormat;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,6 +66,9 @@ public class CamelRouter extends RouteBuilder {
 				.apiProperty("api.title", "Fruity People API")
 				.apiProperty("api.version", "1.0.0");
 
+		JacksonXMLDataFormat jacksonXml = new JacksonXMLDataFormat();
+		jacksonXml.setPrettyPrint(true); // Optional: for human-readable XML
+
 		rest("/fruits").description("Fruits REST service")
 				.consumes("application/json")
 				.produces("application/json")
@@ -90,10 +94,6 @@ public class CamelRouter extends RouteBuilder {
 				// Convert the fruit to a fruity person.
 				.to("direct:convertToPerson")
 
-				// Create the person in the person service.
-				.log("Add Person ${body}")
-				.to("bean:personService?method=createPerson")
-
 				.to("caffeine-cache://fruit-cache?action=GET&key=${body.name}");
 
 		from("direct:addFruit")
@@ -102,10 +102,6 @@ public class CamelRouter extends RouteBuilder {
 
 				// Convert the fruit to a fruity person.
 				.to("direct:convertToPerson")
-
-				// Update the person in the person service.
-				.log("Update Person ${body}")
-				.to("bean:personService?method=updatePerson")
 
 				.to("caffeine-cache://fruit-cache?action=GET&key=${body.name}");
 
@@ -119,20 +115,17 @@ public class CamelRouter extends RouteBuilder {
 				.log("Fruits: ${body}");
 
 		from("direct:convertToPerson")
+				// Set a variable with the name so we can use it later.
+				.setVariable("filename", simple("${body.name}") )
+
 				.log("Convert fruit to person")
-				.convertBodyTo(Person.class);
+				.convertBodyTo(Person.class)
 
-		rest("/people").description("People REST service")
-				.consumes("application/json")
-				.produces("application/json")
+				.log("Marshal to xml")
+				.marshal(jacksonXml)
 
-				.get().description("Find all fruity people").outType(Person[].class)
-					.responseMessage().code(200).message("All people successfully returned").endResponseMessage()
-					.to("direct:getPersons");
-
-		from("direct:getPersons")
-				.log("Return all people from the person service.")
-				.to("bean:personService?method=findPersons");
+				.log("Print xml file.")
+				.to("file:C:/Development/input?fileName=${variable.filename}.xml");
 
 	}
 }

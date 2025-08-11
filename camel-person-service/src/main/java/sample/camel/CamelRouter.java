@@ -49,6 +49,20 @@ public class CamelRouter extends RouteBuilder {
 				.apiProperty("api.title", "Fruity People API")
 				.apiProperty("api.version", "1.0.0");
 
+		// REST endpoint route to display people dashboard
+		rest("/people").description("People REST service")
+				.consumes("application/json")
+				.produces("application/json")
+
+				.get().description("Find all fruity people").outType(Person[].class)
+				.responseMessage().code(200).message("All people successfully returned").endResponseMessage()
+				.to("direct:getPersons");
+
+		from("direct:getPersons")
+				.log("Return all people from the person service.")
+				.to("bean:personService?method=findPersons");
+
+		// Camel route to scan folder for files.
 		from("file:C:/Development/input?noop=true&readLock=changed&idempotent=true&move=.done")
 				.log("Add Person ${body}")
 				.to("bean:personService?method=createPerson");
