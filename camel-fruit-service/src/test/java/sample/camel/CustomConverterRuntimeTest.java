@@ -51,7 +51,7 @@ public class CustomConverterRuntimeTest {
 		context.getTypeConverterRegistry().addTypeConverters(new CustomRuntimeConverter());
 
 		byte[] data = "John Doe 22".getBytes();
-		final Person abc = producerTemplate.requestBody("direct:convert1", data, Person.class);
+		final Person abc = producerTemplate.requestBody("direct:convertToPerson", data, Person.class);
 
 		assertNotNull(abc);
 
