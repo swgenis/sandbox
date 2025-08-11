@@ -24,6 +24,12 @@ public class Person {
 	private String lastName;
 	private int age;
 
+	// Default constructor for jackson.
+	public Person() {
+		super();
+	}
+
+	// Convenience constructor.
 	public Person(String firstName, String lastName, int age) {
 		this.firstName = firstName;
 		this.lastName = lastName;

@@ -17,6 +17,7 @@
 package sample.camel;
 
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.dataformat.JacksonXMLDataFormat;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,8 +63,13 @@ public class CamelRouter extends RouteBuilder {
 				.log("Return all people from the person service.")
 				.to("bean:personService?method=findPersons");
 
+		JacksonXMLDataFormat xmlDataFormat = new JacksonXMLDataFormat();
+		xmlDataFormat.setUnmarshalType(Person.class); // Replace with your class
+
 		// Camel route to scan folder for files.
 		from("file:C:/Development/input?noop=true&readLock=changed&idempotent=true&move=.done")
+				.unmarshal(xmlDataFormat)
+
 				.log("Add Person ${body}")
 				.to("bean:personService?method=createPerson");
 
