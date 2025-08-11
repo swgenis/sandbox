@@ -14,16 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample;
+package sample.service;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import sample.model.Person;
 
-@SpringBootApplication
-public class Application {
+import java.util.Collection;
 
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
+/**
+ * Service interface for managing people.
+ */
+public interface PersonService {
+
+    Person findPerson(String name);
+
+    Collection<Person> findPersons();
+
+    Person createPerson(Person person);
+
+    Person updatePerson(Person person);
 
 }
