@@ -24,6 +24,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import sample.model.CertificationResponse;
 
+import static org.apache.camel.model.rest.RestParamType.path;
+
 @Component
 public class CamelRouter extends RouteBuilder {
 
@@ -57,21 +59,30 @@ public class CamelRouter extends RouteBuilder {
 				.consumes("application/json")
 				.produces("application/json")
 
-				.get().description("Fruit certification service.")
+				.get("/{fruit}").description("Fruit certification service.")
+					.param().name("fruit").type(path).description("The fruit").dataType("string").endParam()
 					.responseMessage().code(200).message("Checked fruit certification").endResponseMessage()
 					.to("direct:certifyFruit");
 
 		from("direct:certifyFruit")
-				.log("Return all people from the person service.")
-				.outputTypeWithValidate("certification")
+
+				.log("User validation to certify fruit.")
+				.inputTypeWithValidate("certification")
+
+				.log("Build certification response.")
 				.choice()
-					.when(simple("${body.name}"))
+					.when(simple("${header.fruit} == 'Banana'"))
 						.process(e -> {
-							CertificationResponse response = e.getMessage().getBody(CertificationResponse.class);
+							CertificationResponse response = new CertificationResponse();
 							response.setCertified("Super");
+							e.getIn().setBody(response);
 						})
 					.otherwise()
-						.throwException(new RuntimeException("Unknown Fruit."));
+						.process(e -> {
+							CertificationResponse response = new CertificationResponse();
+							response.setCertified("Regular");
+							e.getIn().setBody(response);
+						});
 
 	}
 

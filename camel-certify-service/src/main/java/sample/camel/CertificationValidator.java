@@ -24,19 +24,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Component("certificationValidator")
 public class CertificationValidator extends Validator {
 
     private static final Logger LOG = LoggerFactory.getLogger(CertificationValidator.class);
 
-    private String[] fruits = {"Banana", "Apple", "Orange", "Pineapple", "Peach", "Pear"};
+    private final String[] fruits = {"Banana", "Apple", "Orange", "Pineapple", "Peach", "Pear"};
 
     @Override
     public void validate(Message message, DataType type) throws ValidationException {
 
-        Object body = message.getBody();
-        LOG.info("Validating : [{}]", body);
-        if (body instanceof String && body.equals("greeting")) {
+        Object fruit = message.getHeader("fruit");
+        LOG.info("Validating : [{}]", fruit);
+        if (fruit instanceof String && Arrays.asList(fruits).contains(fruit)) {
             LOG.info("OK");
         } else {
             throw new ValidationException(message.getExchange(), "This ain't no fruit.");
