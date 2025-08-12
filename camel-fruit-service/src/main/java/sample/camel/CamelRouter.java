@@ -66,9 +66,7 @@ public class CamelRouter extends RouteBuilder {
 				.apiProperty("api.title", "Fruity People API")
 				.apiProperty("api.version", "1.0.0");
 
-		JacksonXMLDataFormat jacksonXml = new JacksonXMLDataFormat();
-		jacksonXml.setPrettyPrint(true); // Optional: for human-readable XML
-
+		// Configure fruity endpoints.
 		rest("/fruits").description("Fruits REST service")
 				.consumes("application/json")
 				.produces("application/json")
@@ -83,9 +81,9 @@ public class CamelRouter extends RouteBuilder {
 					.to("direct:addFruit")
 
 				.put().description("Update a fruit").type(Fruit.class).outType(Fruit.class)
-						.param().name("body").type(body).description("The fruit to update").endParam()
-						.responseMessage().code(204).message("Fruity person successfully updated").endResponseMessage()
-						.to("direct:updateFruit");
+					.param().name("body").type(body).description("The fruit to update").endParam()
+					.responseMessage().code(204).message("Fruity person successfully updated").endResponseMessage()
+					.to("direct:updateFruit");
 
 		from("direct:addFruit")
 				.log("Add fruit ${body} ")
@@ -93,17 +91,15 @@ public class CamelRouter extends RouteBuilder {
 
 				// Convert the fruit to a fruity person.
 				.to("direct:convertToPerson")
+				.to("direct:printToFile");
 
-				.to("caffeine-cache://fruit-cache?action=GET&key=${body.name}");
-
-		from("direct:addFruit")
+		from("direct:updateFruit")
 				.log("Add fruit ${body} ")
 				.to("caffeine-cache://fruit-cache?action=PUT&key=${body.name}")
 
 				// Convert the fruit to a fruity person.
 				.to("direct:convertToPerson")
-
-				.to("caffeine-cache://fruit-cache?action=GET&key=${body.name}");
+				.to("direct:printToFile");
 
 		from("direct:getFruits")
 				.log("Return all fruits from cache.")
@@ -114,12 +110,19 @@ public class CamelRouter extends RouteBuilder {
 				})
 				.log("Fruits: ${body}");
 
+		JacksonXMLDataFormat jacksonXml = new JacksonXMLDataFormat();
+		jacksonXml.setPrettyPrint(true); // Optional: for human-readable XML
+
+		// Fruit to Person conversion and processing.
 		from("direct:convertToPerson")
-				// Set a variable with the name so we can use it later.
-				.setVariable("filename", simple("${body.name}") )
 
 				.log("Convert fruit to person")
-				.convertBodyTo(Person.class)
+				.convertBodyTo(Person.class);
+
+		from("direct:printToFile")
+
+				// Set a variable with the name so we can use it later.
+				.setVariable("filename", simple("${body.firstName}-${body.lastName}") )
 
 				.log("Marshal to xml")
 				.marshal(jacksonXml)
@@ -128,4 +131,5 @@ public class CamelRouter extends RouteBuilder {
 				.to("file:C:/Development/input?fileName=${variable.filename}.xml");
 
 	}
+
 }

@@ -17,13 +17,14 @@
 package sample.camel;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.dataformat.JacksonXMLDataFormat;
+import org.apache.camel.component.jacksonxml.JacksonXMLDataFormat;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import sample.model.Person;
+import sample.model.PersonResponse;
 
 @Component
 public class CamelRouter extends RouteBuilder {
@@ -65,13 +66,24 @@ public class CamelRouter extends RouteBuilder {
 
 		JacksonXMLDataFormat xmlDataFormat = new JacksonXMLDataFormat();
 		xmlDataFormat.setUnmarshalType(Person.class); // Replace with your class
+		xmlDataFormat.setPrettyPrint(true); // Optional: for human-readable XML
 
 		// Camel route to scan folder for files.
 		from("file:C:/Development/input?noop=true&readLock=changed&idempotent=true&move=.done")
 				.unmarshal(xmlDataFormat)
 
 				.log("Add Person ${body}")
-				.to("bean:personService?method=createPerson");
+				.to("bean:personService?method=createPerson")
+
+				// Set a variable with the name so we can use it later.
+				.setVariable("filename", simple("${body.firstName}-${body.lastName}") )
+				.setBody(constant(new PersonResponse("CREATED")))
+
+				.log("Marshal to xml")
+				.marshal(xmlDataFormat)
+
+				.log("Print xml file.")
+				.to("file:C:/Development/output?fileName=${variable.filename}.xml");
 
 	}
 
