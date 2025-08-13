@@ -17,7 +17,7 @@
 package sample.service;
 
 import org.springframework.stereotype.Service;
-import sample.model.Person;
+import sample.person.Person;
 
 import java.util.Collection;
 import java.util.Map;

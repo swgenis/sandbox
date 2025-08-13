@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import sample.FruitRestApp;
-import sample.model.Fruit;
-import sample.model.Person;
+import sample.fruit.Fruit;
+import sample.person.Person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

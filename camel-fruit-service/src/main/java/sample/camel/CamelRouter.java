@@ -26,10 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import sample.model.Fruit;
-import sample.model.Person;
+import sample.fruit.Fruit;
+import sample.person.Person;
 
 import java.util.Collection;
+import java.util.UUID;
 
 import static org.apache.camel.model.rest.RestParamType.body;
 
@@ -85,22 +86,6 @@ public class CamelRouter extends RouteBuilder {
 					.responseMessage().code(204).message("Fruity person successfully updated").endResponseMessage()
 					.to("direct:updateFruit");
 
-		from("direct:addFruit")
-				.log("Add fruit ${body} ")
-				.to("caffeine-cache://fruit-cache?action=PUT&key=${body.name}")
-
-				// Convert the fruit to a fruity person.
-				.to("direct:convertToPerson")
-				.to("direct:printToFile");
-
-		from("direct:updateFruit")
-				.log("Add fruit ${body} ")
-				.to("caffeine-cache://fruit-cache?action=PUT&key=${body.name}")
-
-				// Convert the fruit to a fruity person.
-				.to("direct:convertToPerson")
-				.to("direct:printToFile");
-
 		from("direct:getFruits")
 				.log("Return all fruits from cache.")
 				.process(exchange -> {
@@ -109,6 +94,40 @@ public class CamelRouter extends RouteBuilder {
 					exchange.getIn().setBody(fruits.toArray());
 				})
 				.log("Fruits: ${body}");
+
+		from("direct:addFruit")
+				.to("direct:initFruit") // Initialise
+				.to("direct:certifyFruit") // Certify
+				.to("direct:convertToPerson") // Convert
+				.to("direct:printToFile"); // Print
+
+		from("direct:updateFruit")
+				.to("direct:initFruit") // Initialise
+				.to("direct:certifyFruit") // Certify
+				.to("direct:convertToPerson") // Convert
+				.to("direct:printToFile"); // Print
+
+		// Initialise fruit by assigning id and cache the request.
+		from("direct:initFruit")
+				.log("Initialise fruit ${body} ")
+				.setVariable("instanceId", constant(UUID.randomUUID().toString()))
+				.to("caffeine-cache://fruit-cache?action=PUT&key=${variable.instanceId}");
+
+		// Calling the rest certification service to validate the fruit.
+		from("direct:certifyFruit")
+				.log("Calling certification service ")
+
+				// Set header variable to use as path parameter.
+				.setHeader("fruit", simple("${body.name}"))
+				.to("rest:get:certify/{fruit}?host=localhost:8082/api&outType=sample.certification.CertificationResponse")
+				.log("Certification: ${body}")
+
+				// Check if this fruit is certified.
+				.choice()
+						.when(simple("${body.certified} == 'Super' || ${body.certified} == 'Regular'"))
+							.to("caffeine-cache://fruit-cache?action=GET&key=${variable.instanceId}")
+						.otherwise()
+							.throwException(new Exception("Not certified"));
 
 		JacksonXMLDataFormat jacksonXml = new JacksonXMLDataFormat();
 		jacksonXml.setPrettyPrint(true); // Optional: for human-readable XML
@@ -119,6 +138,7 @@ public class CamelRouter extends RouteBuilder {
 				.log("Convert fruit to person")
 				.convertBodyTo(Person.class);
 
+		// Printing xml file with person details.
 		from("direct:printToFile")
 
 				// Set a variable with the name so we can use it later.

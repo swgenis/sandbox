@@ -110,6 +110,12 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 
+		<!-- sandbox dependencies -->
+		<dependency>
+			<groupId>sw.sandbox</groupId>
+			<artifactId>camel-library</artifactId>
+		</dependency>
+
 		<!-- test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

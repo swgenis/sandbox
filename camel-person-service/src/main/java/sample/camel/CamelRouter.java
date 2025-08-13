@@ -23,8 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import sample.model.Person;
-import sample.model.PersonResponse;
+import sample.person.Person;
+import sample.person.PersonResponse;
 
 @Component
 public class CamelRouter extends RouteBuilder {

@@ -1,4 +1,4 @@
-package sample.model;
+package sample.certification;
 
 public class CertificationResponse {
 

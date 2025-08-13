@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import sample.model.CertificationResponse;
+import sample.certification.CertificationResponse;
 
 import static org.apache.camel.model.rest.RestParamType.path;
 
@@ -73,15 +73,11 @@ public class CamelRouter extends RouteBuilder {
 				.choice()
 					.when(simple("${header.fruit} == 'Banana'"))
 						.process(e -> {
-							CertificationResponse response = new CertificationResponse();
-							response.setCertified("Super");
-							e.getIn().setBody(response);
+							e.getIn().setBody(new CertificationResponse("Super"));
 						})
 					.otherwise()
 						.process(e -> {
-							CertificationResponse response = new CertificationResponse();
-							response.setCertified("Regular");
-							e.getIn().setBody(response);
+							e.getIn().setBody(new CertificationResponse("Regular"));
 						});
 
 	}

@@ -18,8 +18,8 @@ package sample.camel;
 
 import org.apache.camel.Converter;
 import org.apache.camel.TypeConverters;
-import sample.model.Fruit;
-import sample.model.Person;
+import sample.fruit.Fruit;
+import sample.person.Person;
 
 @Converter
 public class CustomRuntimeConverter implements TypeConverters {

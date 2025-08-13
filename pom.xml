@@ -13,10 +13,11 @@
 	<name>Sandbox Parent</name>
 
 	<modules>
+		<module>camel-library</module>
 		<module>camel-certify-service</module>
 		<module>camel-fruit-service</module>
 		<module>camel-person-service</module>
-	</modules>
+    </modules>
 
 	<properties>
 		<category>Beginner</category>
@@ -54,6 +55,12 @@
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${javax.servlet.api.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>sw.sandbox</groupId>
+				<artifactId>camel-library</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

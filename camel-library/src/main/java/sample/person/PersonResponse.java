@@ -1,4 +1,4 @@
-package sample.model;
+package sample.person;
 
 public class PersonResponse {
 
