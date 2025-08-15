@@ -18,16 +18,16 @@ package sample.camel;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import jakarta.ws.rs.core.Response;
 import org.apache.camel.BindToRegistry;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jacksonxml.JacksonXMLDataFormat;
-import org.apache.camel.model.rest.RestBindingMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import sample.fruit.Fruit;
-import sample.person.Person;
+import sample.model.fruit.Fruit;
+import sample.model.fruit.FruitResponse;
+import sample.model.person.Person;
+import sample.model.person.PersonResponse;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -37,51 +37,44 @@ import static org.apache.camel.model.rest.RestParamType.body;
 @Component
 public class CamelRouter extends RouteBuilder {
 
-	@Autowired
-	private Environment env;
-
-	@Value("${camel.servlet.mapping.context-path}")
-	private String contextPath;
-
 	@BindToRegistry("fruit-cache")
-	Cache<String, Fruit> cache = Caffeine.newBuilder().recordStats().build();
+	Cache<String, FruitResponse> cache = Caffeine.newBuilder().recordStats().build();
 
 	public CamelRouter() {
-		cache.put("Apple", new Fruit("Apple", "Winter fruit"));
-		cache.put("Pineapple", new Fruit("Pineapple", "Tropical fruit"));
+		cache.put("Apple", new FruitResponse(new Fruit("Apple", "Winter fruit"), "Red"));
+		cache.put("Pineapple", new FruitResponse(new Fruit("Pineapple", "Tropical fruit"), "Yellow"));
 	}
 
 	@Override
 	public void configure() throws Exception {
 
 		// this can also be configured in application.properties
-		restConfiguration()
-				.component("servlet")
-				.bindingMode(RestBindingMode.json)
-				.dataFormatProperty("prettyPrint", "true")
-				.enableCORS(true)
-				.port(env.getProperty("server.port", "8080"))
-				.contextPath(contextPath.substring(0, contextPath.length() - 2))
-				// turn on openapi api-doc
-				.apiContextPath("/api-doc")
-				.apiProperty("api.title", "Fruity People API")
-				.apiProperty("api.version", "1.0.0");
+		restConfiguration();
+
+		//very raw way, just to handle the validation responses
+		onException(Exception.class)
+				.handled(true)
+				.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(Response.Status.BAD_REQUEST.getStatusCode()))
+				.setBody(simple("${exchangeProperty.CamelExceptionCaught.getMessage()}"));
 
 		// Configure fruity endpoints.
 		rest("/fruits").description("Fruits REST service")
 				.consumes("application/json")
 				.produces("application/json")
 
-				.get().description("Find all fruits").outType(Fruit[].class)
+				.get().routeId("getFruits")
+					.description("Find all fruits").outType(FruitResponse[].class)
 					.responseMessage().code(200).message("All fruits successfully returned").endResponseMessage()
 					.to("direct:getFruits")
 
-				.post().description("Create a fruit").type(Fruit.class).outType(Fruit.class)
+				.post().routeId("createFruits")
+					.description("Create a fruit").type(Fruit.class).outType(FruitResponse.class)
 					.param().name("body").type(body).description("The fruit to create").endParam()
 					.responseMessage().code(204).message("Fruity person successfully created").endResponseMessage()
 					.to("direct:addFruit")
 
-				.put().description("Update a fruit").type(Fruit.class).outType(Fruit.class)
+				.put().routeId("updateFruits")
+					.description("Update a fruit").type(Fruit.class).outType(FruitResponse.class)
 					.param().name("body").type(body).description("The fruit to update").endParam()
 					.responseMessage().code(204).message("Fruity person successfully updated").endResponseMessage()
 					.to("direct:updateFruit");
@@ -90,7 +83,7 @@ public class CamelRouter extends RouteBuilder {
 				.log("Return all fruits from cache.")
 				.process(exchange -> {
 					// Retrieve map from cache and convert to array.
-					Collection<Fruit> fruits = cache.asMap().values();
+					Collection<FruitResponse> fruits = cache.asMap().values();
 					exchange.getIn().setBody(fruits.toArray());
 				})
 				.log("Fruits: ${body}");
@@ -109,17 +102,21 @@ public class CamelRouter extends RouteBuilder {
 
 		// Initialise fruit by assigning id and cache the request.
 		from("direct:initFruit")
+
+				.routeId("initFruit")
 				.log("Initialise fruit ${body} ")
 				.setVariable("instanceId", constant(UUID.randomUUID().toString()))
 				.to("caffeine-cache://fruit-cache?action=PUT&key=${variable.instanceId}");
 
 		// Calling the rest certification service to validate the fruit.
 		from("direct:certifyFruit")
+
+				.routeId("certifyFruitRestProducer")
 				.log("Calling certification service ")
 
 				// Set header variable to use as path parameter.
 				.setHeader("fruit", simple("${body.name}"))
-				.to("rest:get:certify/{fruit}?host=localhost:8082/api&outType=sample.certification.CertificationResponse")
+				.to("rest:get:certify/{fruit}?host=localhost:8082/api&outType=sample.model.certification.CertificationResponse")
 				.log("Certification: ${body}")
 
 				// Check if this fruit is certified.
@@ -130,17 +127,20 @@ public class CamelRouter extends RouteBuilder {
 							.throwException(new Exception("Not certified"));
 
 		JacksonXMLDataFormat jacksonXml = new JacksonXMLDataFormat();
+		jacksonXml.setUnmarshalType(PersonResponse.class); // Replace with your class
 		jacksonXml.setPrettyPrint(true); // Optional: for human-readable XML
 
 		// Fruit to Person conversion and processing.
 		from("direct:convertToPerson")
 
+				.routeId("convertToPerson")
 				.log("Convert fruit to person")
 				.convertBodyTo(Person.class);
 
 		// Printing xml file with person details.
 		from("direct:printToFile")
 
+				.routeId("printToFile")
 				// Set a variable with the name so we can use it later.
 				.setVariable("filename", simple("${body.firstName}-${body.lastName}") )
 
@@ -149,6 +149,13 @@ public class CamelRouter extends RouteBuilder {
 
 				.log("Print xml file.")
 				.to("file:C:/Development/input?fileName=${variable.filename}.xml");
+
+		// Camel route to scan folder for files.
+		from("file:C:/Development/output?noop=true&readLock=changed&idempotent=true&move=.done")
+				.unmarshal(jacksonXml)
+
+				.log("Person response ${body}")
+				.to("caffeine-cache://fruit-cache?action=GET&key=${variable.instanceId}");
 
 	}
 

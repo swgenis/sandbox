@@ -16,7 +16,7 @@
  */
 package sample.service;
 
-import sample.person.Person;
+import sample.model.person.Person;
 
 import java.util.Collection;
 

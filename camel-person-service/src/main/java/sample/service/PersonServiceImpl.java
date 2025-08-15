@@ -17,7 +17,7 @@
 package sample.service;
 
 import org.springframework.stereotype.Service;
-import sample.person.Person;
+import sample.model.person.Person;
 
 import java.util.Collection;
 import java.util.Map;
@@ -29,14 +29,14 @@ public class PersonServiceImpl implements PersonService {
     private final Map<String, Person> people = new TreeMap<>();
 
     public PersonServiceImpl() {
-        people.put("John", new Person("John", "Coltrane", 45));
-        people.put("Miles", new Person("Miles",  "Davis", 23));
-        people.put("Sonny", new Person("Sonny",  "Rollins", 60));
+        people.put("John", new Person("1", "John", "Coltrane", 45));
+        people.put("Miles", new Person("2", "Miles",  "Davis", 23));
+        people.put("Sonny", new Person("3", "Sonny",  "Rollins", 60));
     }
 
     @Override
-    public Person findPerson(String id) {
-        return people.get(id);
+    public Person findPerson(String instanceId) {
+        return people.get(instanceId);
     }
 
     @Override
@@ -46,14 +46,14 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Person createPerson(Person person) {
-        people.put(person.getFirstName(), person);
-        return people.get(person.getFirstName());
+        people.put(person.getInstanceId(), person);
+        return people.get(person.getInstanceId());
     }
 
     @Override
     public Person updatePerson(Person person) {
-        people.put(person.getFirstName(), person);
-        return people.get(person.getFirstName());
+        people.put(person.getInstanceId(), person);
+        return people.get(person.getInstanceId());
     }
 
 }
