@@ -17,9 +17,6 @@
 package sample.camel;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import sample.model.certification.CertificationResponse;
 
@@ -27,12 +24,6 @@ import static org.apache.camel.model.rest.RestParamType.path;
 
 @Component
 public class CamelRouter extends RouteBuilder {
-
-	@Autowired
-	private Environment env;
-
-	@Value("${camel.servlet.mapping.context-path}")
-	private String contextPath;
 
 	@Override
 	public void configure() throws Exception {
@@ -62,13 +53,9 @@ public class CamelRouter extends RouteBuilder {
 				.log("Build certification response.")
 				.choice()
 					.when(simple("${header.fruit} == 'Banana'"))
-						.process(e -> {
-							e.getIn().setBody(new CertificationResponse("Super"));
-						})
+						.setBody(constant(new CertificationResponse("Super")))
 					.otherwise()
-						.process(e -> {
-							e.getIn().setBody(new CertificationResponse("Regular"));
-						});
+						.setBody(constant(new CertificationResponse("Regular")));
 
 	}
 

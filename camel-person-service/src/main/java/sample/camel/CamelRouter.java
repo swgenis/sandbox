@@ -50,6 +50,8 @@ public class CamelRouter extends RouteBuilder {
 
 		// Camel route to scan folder for files.
 		from("file:C:/Development/input?noop=true&readLock=changed&idempotent=true&move=.done")
+
+				.routeId("mockPersonService")
 				.unmarshal(xmlDataFormat)
 
 				.log("Add Person ${body}")
@@ -57,9 +59,12 @@ public class CamelRouter extends RouteBuilder {
 
 				// Set a variable with the name so we can use it later.
 				.setVariable("filename", simple("${body.firstName}-${body.lastName}") )
-				.setBody(constant(new PersonResponse("${body.instanceId}", "CREATED")))
+				.setBody(e -> {
+					Person person = e.getIn().getBody(Person.class);
+					return new PersonResponse(person.getInstanceId(), "CREATED");
+				})
 
-				.log("Marshal to xml")
+				.log("Marshal to xml: ${body}")
 				.marshal(xmlDataFormat)
 
 				.log("Print xml file.")

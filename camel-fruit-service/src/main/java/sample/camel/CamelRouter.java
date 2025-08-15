@@ -22,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.camel.BindToRegistry;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.caffeine.CaffeineConstants;
 import org.apache.camel.component.jacksonxml.JacksonXMLDataFormat;
 import org.springframework.stereotype.Component;
 import sample.model.fruit.Fruit;
@@ -81,10 +82,10 @@ public class CamelRouter extends RouteBuilder {
 
 		from("direct:getFruits")
 				.log("Return all fruits from cache.")
-				.process(exchange -> {
+				.setBody(exchange -> {
 					// Retrieve map from cache and convert to array.
 					Collection<FruitResponse> fruits = cache.asMap().values();
-					exchange.getIn().setBody(fruits.toArray());
+					return fruits.toArray();
 				})
 				.log("Fruits: ${body}");
 
@@ -106,7 +107,12 @@ public class CamelRouter extends RouteBuilder {
 				.routeId("initFruit")
 				.log("Initialise fruit ${body} ")
 				.setVariable("instanceId", constant(UUID.randomUUID().toString()))
-				.to("caffeine-cache://fruit-cache?action=PUT&key=${variable.instanceId}");
+				.setBody(e -> {
+					Fruit fruit = (Fruit) e.getIn().getBody();
+					return new FruitResponse(fruit, "Unknown");
+				})
+				.setHeader(CaffeineConstants.KEY, simple("${variable.instanceId}"))
+				.to("caffeine-cache://fruit-cache?action=PUT");
 
 		// Calling the rest certification service to validate the fruit.
 		from("direct:certifyFruit")
@@ -122,7 +128,17 @@ public class CamelRouter extends RouteBuilder {
 				// Check if this fruit is certified.
 				.choice()
 						.when(simple("${body.certified} == 'Super' || ${body.certified} == 'Regular'"))
-							.to("caffeine-cache://fruit-cache?action=GET&key=${variable.instanceId}")
+							.process(e -> {
+								String instanceId = (String) e.getVariable("instanceId");
+								FruitResponse fruitResponse = cache.getIfPresent(instanceId);
+								if (fruitResponse != null) {
+									fruitResponse.setColor("Certified");
+									cache.put(instanceId, fruitResponse);
+									e.getIn().setBody(fruitResponse);
+								} else {
+									throw new Exception("Missing fruit.");
+								}
+							})
 						.otherwise()
 							.throwException(new Exception("Not certified"));
 
@@ -155,7 +171,17 @@ public class CamelRouter extends RouteBuilder {
 				.unmarshal(jacksonXml)
 
 				.log("Person response ${body}")
-				.to("caffeine-cache://fruit-cache?action=GET&key=${variable.instanceId}");
+				.process(e -> {
+					PersonResponse personResponse = e.getIn().getBody(PersonResponse.class);
+					FruitResponse fruitResponse = cache.getIfPresent(personResponse.getInstanceId());
+					if (fruitResponse == null) {
+						throw new Exception("Fruit not found");
+					} else {
+						fruitResponse.setColor(personResponse.getStatus());
+						cache.put(personResponse.getInstanceId(), fruitResponse);
+					}
+				})
+				.to("caffeine-cache://fruit-cache?action=PUT&key=${body.instanceId}");
 
 	}
 
