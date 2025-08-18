@@ -310,7 +310,7 @@
             <xs:element name="Prtry" type="Max35Text"/>
         </xs:choice>
     </xs:complexType>
-    <xs:complexType name="Document">
+    <xs:complexType name="Pain001Document">
         <xs:sequence>
             <xs:element name="CstmrCdtTrfInitn" type="CustomerCreditTransferInitiationV09"/>
         </xs:sequence>

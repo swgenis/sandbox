@@ -30,7 +30,7 @@ import jakarta.xml.bind.annotation.XmlType;
 @XmlType(name = "Document", namespace = "urn:iso:std:iso:20022:tech:xsd:pain.001.001.09", propOrder = {
     "cstmrCdtTrfInitn"
 })
-public class Document {
+public class Pain001Document {
 
     @XmlElement(name = "CstmrCdtTrfInitn", namespace = "urn:iso:std:iso:20022:tech:xsd:pain.001.001.09", required = true)
     protected CustomerCreditTransferInitiationV09 cstmrCdtTrfInitn;

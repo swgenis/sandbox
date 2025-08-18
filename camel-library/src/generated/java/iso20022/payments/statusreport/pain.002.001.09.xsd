@@ -226,7 +226,7 @@
             <xs:element name="Prtry" type="Max35Text"/>
         </xs:choice>
     </xs:complexType>
-    <xs:complexType name="Document">
+    <xs:complexType name="Pain002Document">
         <xs:sequence>
             <xs:element name="CstmrPmtStsRpt" type="CustomerPaymentStatusReportV09"/>
         </xs:sequence>

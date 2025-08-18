@@ -34,11 +34,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Document }
+     * Create an instance of {@link Pain002Document }
      * 
      */
-    public Document createDocument() {
-        return new Document();
+    public Pain002Document createDocument() {
+        return new Pain002Document();
     }
 
     /**
@@ -714,16 +714,16 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Document }{@code >}
+     * Create an instance of {@link JAXBElement }{@code <}{@link Pain002Document }{@code >}
      * 
      * @param value
      *     Java instance representing xml element's value.
      * @return
-     *     the new instance of {@link JAXBElement }{@code <}{@link Document }{@code >}
+     *     the new instance of {@link JAXBElement }{@code <}{@link Pain002Document }{@code >}
      */
     @XmlElementDecl(namespace = "urn:iso:std:iso:20022:tech:xsd:pain.002.001.09", name = "Document")
-    public JAXBElement<Document> createDocument(Document value) {
-        return new JAXBElement<Document>(_Document_QNAME, Document.class, null, value);
+    public JAXBElement<Pain002Document> createDocument(Pain002Document value) {
+        return new JAXBElement<Pain002Document>(_Document_QNAME, Pain002Document.class, null, value);
     }
 
 }
