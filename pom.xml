@@ -15,6 +15,7 @@
 	<modules>
 		<module>camel-library</module>
 		<module>camel-certify-service</module>
+		<module>camel-contract-first</module>
 		<module>camel-fruit-service</module>
 		<module>camel-person-service</module>
     </modules>

@@ -1,0 +1,324 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "v1",
+    "title": "OrdersConfirmationAPI"
+  },
+  "paths": {
+    "/api/Auth/Login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Stt.Etg.OrdersConfirmationAPI.Models.LoginModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stt.Etg.OrdersConfirmationAPI.Models.LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or server error"
+          }
+        }
+      }
+    },
+    "/api/trades": {
+      "get": {
+        "tags": [
+          "Trade"
+        ],
+        "operationId": "Trade_GetUnconfirmedTrades",
+        "parameters": [
+          {
+            "name": "tradeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "counterparty",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Stt.Etg.OrdersConfirmationAPI.Models.Trade"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or server error"
+          }
+        }
+      }
+    },
+    "/api/trades/confirmation": {
+      "post": {
+        "tags": [
+          "Trade"
+        ],
+        "operationId": "Trade_ConfirmTrade",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Stt.Etg.OrdersConfirmationAPI.Models.TradeConfirmationList"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Stt.Etg.OrdersConfirmationAPI.Models.Trade"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or server error"
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:15975"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Stt.Etg.OrdersConfirmationAPI.Models.LoginModel": {
+        "type": "object",
+        "properties": {
+          "Username": {
+            "type": "string"
+          },
+          "Password": {
+            "type": "string"
+          }
+        }
+      },
+      "Stt.Etg.OrdersConfirmationAPI.Models.LoginResponse": {
+        "type": "object",
+        "properties": {
+          "AccessToken": {
+            "type": "string"
+          }
+        }
+      },
+      "Stt.Etg.OrdersConfirmationAPI.Models.Trade": {
+        "type": "object",
+        "properties": {
+          "TradeId": {
+            "type": "string"
+          },
+          "Market": {
+            "type": "string"
+          },
+          "House": {
+            "type": "string"
+          },
+          "Broker": {
+            "type": "string"
+          },
+          "Trader": {
+            "type": "string"
+          },
+          "MainPrincipal": {
+            "type": "string"
+          },
+          "Principal": {
+            "type": "string"
+          },
+          "PrincipalType": {
+            "type": "string"
+          },
+          "CSDAccount": {
+            "type": "string"
+          },
+          "SCACode": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Capacity": {
+            "type": "string"
+          },
+          "Counterparty": {
+            "type": "string"
+          },
+          "CounterpartyName": {
+            "type": "string"
+          },
+          "CounterpartyCSDAccount": {
+            "type": "string"
+          },
+          "AssetClass": {
+            "type": "string"
+          },
+          "Asset": {
+            "type": "string"
+          },
+          "SecurityType": {
+            "type": "string"
+          },
+          "Security": {
+            "type": "string"
+          },
+          "Companion": {
+            "type": "string"
+          },
+          "SettlementDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "BuySell": {
+            "type": "string"
+          },
+          "Quantity": {
+            "format": "double",
+            "type": "number"
+          },
+          "Price": {
+            "format": "double",
+            "type": "number"
+          },
+          "Rate": {
+            "format": "double",
+            "type": "number"
+          },
+          "Yield": {
+            "format": "double",
+            "type": "number"
+          },
+          "Consideration": {
+            "format": "double",
+            "type": "number"
+          },
+          "Spot": {
+            "format": "double",
+            "type": "number"
+          },
+          "BondSpread": {
+            "format": "double",
+            "type": "number"
+          },
+          "SecondSettlement": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "SecondPrice": {
+            "format": "double",
+            "type": "number"
+          },
+          "SecondYield": {
+            "format": "double",
+            "type": "number"
+          },
+          "SecondConsideration": {
+            "format": "double",
+            "type": "number"
+          },
+          "EnteredDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "EnteredTime": {
+            "type": "string"
+          },
+          "TradeDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "TradeTime": {
+            "type": "string"
+          },
+          "Reference": {
+            "type": "string"
+          },
+          "AdditionalReference": {
+            "type": "string"
+          },
+          "MatchTradeId": {
+            "type": "string"
+          },
+          "Origin": {
+            "type": "string"
+          },
+          "Reason": {
+            "type": "string"
+          },
+          "Commission": {
+            "format": "double",
+            "type": "number"
+          },
+          "PriceBandBreached": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Stt.Etg.OrdersConfirmationAPI.Models.TradeConfirmationList": {
+        "type": "object",
+        "properties": {
+          "TradeIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Stt.Etg.OrdersConfirmationAPI.Models.TradeConfirmation"
+            }
+          }
+        }
+      },
+      "Stt.Etg.OrdersConfirmationAPI.Models.TradeConfirmation": {
+        "type": "object",
+        "properties": {
+          "TradeId": {
+            "type": "string"
+          },
+          "PrincipalCode": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
